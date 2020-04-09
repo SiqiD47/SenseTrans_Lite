@@ -487,9 +487,9 @@ $(document).ready(function() {
         var wikiImg = "";
         wikiText += "<span style='word-wrap:break-word; text-align:left'><p style='margin-left: 1em'>";
         var realTitle = title;
-          // get first sentence from Wikipedia
-        $.getJSON("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&exsentences=1&redirects&titles=" + title, function(data) {
-            // if page exists on English Wikipedia, extract first sentence
+        // get first sentence from Wikipedia
+        postData("https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=&exsentences=1&format=json&origin=*&titles=" + title, {answer: 42})
+          .then((data) => {
             pageId = Object.keys(data["query"]["pages"])[0];
             if (data["query"]["pages"][pageId]["extract"]) {
               realTitle = data.query.pages[pageId].title
@@ -498,40 +498,52 @@ $(document).ready(function() {
               analysis += "<a href='" + link + "' target='blank'>" + link + "</a></span>";
               var extract = data["query"]["pages"][pageId]["extract"];
               console.log("Extract:", extract);
-              if (extract.match(/</g).length > extract.match(/>/g).length || extract.length < 40) {
-                $.getJSON("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&exsentences=2&redirects&titles=" + title, function(data) {
-                  pageId = Object.keys(data["query"]["pages"])[0];
-                  addWikiText(data["query"]["pages"][pageId]["extract"], false);
-                })
-              } else {
-                addWikiText(extract, false);
-              }
+              addWikiText(extract, false);
             } else {
-              console.log("No wiki link found");
+              wikiText += "No Wikipedia text found, try the link above"
+              console.log("No wiki text found");
               var googleLink = "https://www.google.com/search?q=" + entity.replace(/[&\\#,+'"()$=~%*{}]/g, ' ').split(' ').join('+');
               analysis += "<span style='margin:auto'><span style='font-size:14px'><b>" + entity + "</b></span><br></span>";
               analysis += '</span><br><input type="button" value="Google Search" class="googlebutton" onclick="window.open(\'' + googleLink + '\')" ';
               analysis += 'style="font-size:14px; font-weight:bold; background-color:#e5e5e5; border-radius:2px; border:1px solid #e4e4e4; color:#666; padding:10px; cursor:pointer;" onMouseOver="this.style.color=\'#333\'; this.style.background=\'#f5f5f5\'" onMouseOut="this.style.background=\'#e4e4e4\'; this.style.color=\'#666\'" />';
-            
             }
-        });
-        // detect first image title from wikipedia
-        $.getJSON("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=pageimages&titles=" + realTitle, function(data) {
-          pageId = Object.keys(data.query.pages)[0];
-          if(data.query.pages[pageId].pageimage){
-            var imgURL = data.query.pages[pageId].thumbnail.source;
-            console.log("Image URL:", imgURL);
-            wikiImg += '<img src="' + imgURL + '" style="max-width:40%; max-height:140px; display:block; margin:0 auto; padding:5px; padding-top:15px; float:right">';
-          }
-        });
 
-        $("#white-box2").html(analysis);
-        $("#white-box2").append("<div id='wiki-text'>");
-        $("#wiki-text").append(wikiImg);
-        $("#wiki-text").append(wikiText);
-        $("#wiki-text").css('overflow', 'hidden');
-        $("#wiki-text").css('padding-top', 'hidden');
+            // detect first image title from wikipedia
+            postData("https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&origin=*&pithumbsize=100&titles=" + realTitle, {answer: 42})
+            .then((data) => {
+              pageId = Object.keys(data["query"]["pages"])[0];
+                if(data.query.pages[pageId].pageimage){
+                var imgURL = data.query.pages[pageId].thumbnail.source;
+                console.log("Image URL:", imgURL);
+                wikiImg += '<img src="' + imgURL + '" style="max-width:40%; max-height:140px; display:block; margin:0 auto; padding:5px; padding-top:15px; float:right">';
+              }
+            $("#white-box2").html(analysis);
+            $("#white-box2").append("<div id='wiki-text'>");
+            $("#wiki-text").append(wikiImg);
+            $("#wiki-text").append(wikiText);
+            $("#wiki-text").css('overflow', 'hidden');
+            $("#wiki-text").css('padding-top', 'hidden');
+           });
+          });
+      });    
+    }
+    
+    async function postData(url = '', data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *client
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
       });
+        return response.json();
     }
 
     function runEmotionAnalysis(translatedText) {
