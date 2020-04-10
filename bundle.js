@@ -276,18 +276,22 @@ $(document).ready(function() {
           var translationDiv = $("._5wpt ._50f4 div", postParent)[0];
           var translatedText = translationDiv.textContent;
 
+          translatedText = translatedText.replace(/ 　　 /g, "\n\n");
           translatedText = translatedText.replace(/See Translation/i, "");
           translatedText = translatedText.replace(/See More/i, "");
 
           console.log("After translation: " + translatedText);
+
 
           const intensity = vader.SentimentIntensityAnalyzer.polarity_scores(translatedText);
           console.log("Intensity of Translation: " + intensity.compound);
 
           translatedTextOrig = translatedText; // store translation of original user content
           translatedTextFull = translatedText;
+
           $("#translation-box").html("<div id='translationToggle'><h2 style='color:white; margin-bottom:4px; margin-top:15px; background-color: #3b5998; border-radius: 4px; text-align:center; padding:2px;'> Translation </h2></div><div id=\'white-box\'></div><br>");
           $("#white-box").css('overflow-y', 'auto');
+          $("#white-box").css('white-space', 'pre-line');
           $("#white-box").css('align-items', 'stretch');
           $("#white-box").css('max-height', '200px');
           $("#white-box").css('background-color', 'white');
@@ -297,9 +301,7 @@ $(document).ready(function() {
           $("#white-box").css('word-wrap', 'break-word');
           $("#white-box").css('display', 'inline-block');
           $("#white-box").text(translatedText);
-
           runEntityAnalysis(translatedText, "eng");
-
           runEmotionAnalysis(translatedText);
       }, 1000);
     }
@@ -394,6 +396,10 @@ $(document).ready(function() {
       }
     });
 
+    String.prototype.replaceAt=function(index, replacement) {
+    return this.substr(0, index) + replacement+ this.substr(index + replacement.length);
+    }
+
     /* Runs entity analysis using language langCode, replaces entity text with highlighted clickable
      * entity object. Individual entity analyses are displayed in box when highlighted text is clicked.
      * When linkSection is true, content is from the link and not user content.
@@ -480,12 +486,20 @@ $(document).ready(function() {
 
         // display Wikipedia info only if wikilink exists
         var entity = this.innerText;
-        var title = this.innerText.replace(/ /, '_').replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+        var title = this.innerText.replace(/ /g, '_').replace(/[".,\/#!$%\^&\*;:{}=\`~()]/g,"");
         var link = "https://en.wikipedia.org/wiki/" + title;
 
         wikiText = "";
         var wikiImg = "";
         wikiText += "<span style='word-wrap:break-word; text-align:left'><p style='margin-left: 1em'>";
+        // find all occurrences of '-' and convert the character after it to lower case
+        var indices = [];
+        for(var i=0; i<title.length;i++) {
+          if (title[i] == "-" && i + 1 < title.length) {
+            title = title.substring(0, i+1) + title[i+1].toLowerCase() + title.substring(i+2);
+          }
+        }
+
         var realTitle = title;
         // get first sentence from Wikipedia
         postData("https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=&exsentences=1&format=json&origin=*&titles=" + title, {answer: 42})
