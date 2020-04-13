@@ -275,7 +275,6 @@ $(document).ready(function() {
           var postParent = getPostDiv();
           var translationDiv = $("._5wpt ._50f4 div", postParent)[0];
           var translatedText = translationDiv.textContent;
-
           translatedText = translatedText.replace(/ 　　 /g, "\n\n");
           translatedText = translatedText.replace(/See Translation/i, "");
           translatedText = translatedText.replace(/See More/i, "");
@@ -307,7 +306,6 @@ $(document).ready(function() {
     }
 
     function clickButton(content) {
-
       // TODO: 
       if(containsTranslationButton()){
         var translateButton = getTranslationButton();
@@ -733,10 +731,12 @@ $(document).ready(function() {
     jQuery.ajaxSetup({
       async: false
     });
+
     originalFull = main;
     if (linkText) {
       originalFull += ' ' + linkText;
     }
+
     main = main.replace(/[&\\#+$~%*{}]/g, ' ');
     main = main.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2694-\u2697]|\uD83E[\uDD10-\uDD5D])/g, '');
     main = main.replace(/([\u2764]|[\u2665])/g, '');
@@ -748,10 +748,9 @@ $(document).ready(function() {
 
     var posterName = $(this).find("._6a._5u5j._6b").find(".fwn.fcg").find(".fwb").find("a")[0].innerText;
     var postTime = $(this).find("._5pcq").find("abbr")[0].title;
-
     if (main) {
       detectLanguage(main);
-    } else if(linkText) {
+    } else {
       detectLanguage(linkText);
     }
   });
