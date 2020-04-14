@@ -191,9 +191,11 @@ $(document).ready(function() {
         includeImage = 1;
       }
     }
-
+    // alert('main: ' + main + '\nlinkText: ' + linkText);
     main = main.replace(/See Translation/i, "");
+    main = main.replace(/See original/i, "");
     linkText = linkText.replace(/See Translation/i, "");
+    linkText = linkText.replace(/See original/i, "");
 
     function addHoverBox() {
       $("body").append("<div id='hover-box' style='margin:10px; border-right:8px solid #3B5998; position:absolute; width:auto; height:auto;'></div>");
@@ -254,7 +256,9 @@ $(document).ready(function() {
         }
         content = content.substring(0, tagIndex) + content.substring(tagIndex + 1);
       }
+      // alert('content: ' + content)
       content = content.replace(/See Translation/i, "");
+      content = content.replace(/See original/i, "")
       content = content.replace(/See More/i, "");
       content = content.replace(/&quot;/g, '"');
       content = content.replace(/&/g, ' ');
@@ -277,6 +281,7 @@ $(document).ready(function() {
           var translatedText = translationDiv.textContent;
           translatedText = translatedText.replace(/ 　　 /g, "\n\n");
           translatedText = translatedText.replace(/See Translation/i, "");
+          translatedText = translatedText.replace(/See original/i, "")
           translatedText = translatedText.replace(/See More/i, "");
 
           console.log("After translation: " + translatedText);
@@ -341,6 +346,10 @@ $(document).ready(function() {
       var origLink =  $('a._5pcq[href*="' + fbId +'"]')[0];
       parent = origLink.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;
       var links = $("._43f9._63qh", parent);
+      // alert('links: ' + JSON.stringify(links))
+      // if (links.length > 0) {
+      //   alert('11')
+      // }
       return links.length > 0;
     }
 
@@ -745,7 +754,6 @@ $(document).ready(function() {
 
     // Get post ID
     fbId = getFbId($(this));
-
     var posterName = $(this).find("._6a._5u5j._6b").find(".fwn.fcg").find(".fwb").find("a")[0].innerText;
     var postTime = $(this).find("._5pcq").find("abbr")[0].title;
     if (main) {
