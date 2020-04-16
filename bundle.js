@@ -142,7 +142,6 @@ $(document).ready(function() {
     //If Facebook autotranslates the post, then retrieve hidden original content
     if(autoTranslated.length > 0){
       var main = $(this).find(".hidden_elem").find("p").text();
-
     }else{
       var main = $(this).find(".userContent").find("p").text();
     };
@@ -193,9 +192,7 @@ $(document).ready(function() {
     }
     // alert('main: ' + main + '\nlinkText: ' + linkText);
     main = main.replace(/See Translation/i, "");
-    main = main.replace(/See original/i, "");
     linkText = linkText.replace(/See Translation/i, "");
-    linkText = linkText.replace(/See original/i, "");
 
     function addHoverBox() {
       $("body").append("<div id='hover-box' style='margin:10px; border-right:8px solid #3B5998; position:absolute; width:auto; height:auto;'></div>");
@@ -244,6 +241,7 @@ $(document).ready(function() {
      * entity analysis with English.
      */
     function translateText(content, language, linkSection) {
+      console.log('translateText')
       // remove hashtags, insert periods
       // remove every special character, add space after the !
 
@@ -258,17 +256,16 @@ $(document).ready(function() {
       }
       // alert('content: ' + content)
       content = content.replace(/See Translation/i, "");
-      content = content.replace(/See original/i, "")
       content = content.replace(/See More/i, "");
       content = content.replace(/&quot;/g, '"');
       content = content.replace(/&/g, ' ');
       var translateButton = getTranslationButton();
 
-      console.log(content);
-      
       // Clicks the translation button to read the post
-      if(containsTranslationButton()){
-          translateButton.click();
+      var containsTranslationButton_flag = containsTranslationButton()
+      var autoTranlatedText_flag = autoTranslated.length > 0
+      if (containsTranslationButton_flag || autoTranlatedText_flag){
+          //translateButton.click();
           addHoverBox();
           createButton();
           addTranslationBox();
@@ -276,17 +273,19 @@ $(document).ready(function() {
 
       // Waits 1 second because it takes a while to click the translation button
       setTimeout(function(){
-          var postParent = getPostDiv();
-          var translationDiv = $("._5wpt ._50f4 div", postParent)[0];
-          var translatedText = translationDiv.textContent;
-          translatedText = translatedText.replace(/ 　　 /g, "\n\n");
-          translatedText = translatedText.replace(/See Translation/i, "");
-          translatedText = translatedText.replace(/See original/i, "")
-          translatedText = translatedText.replace(/See More/i, "");
-
+          if (autoTranlatedText_flag) {
+            var translatedText = autoTranslated;
+          }
+          else {
+            var postParent = getPostDiv();
+            var translationDiv = $("._5wpt ._50f4 div", postParent)[0];
+            var translatedText = translationDiv.textContent;
+            translatedText = translatedText.replace(/ 　　 /g, "\n\n");
+            translatedText = translatedText.replace(/See Translation/i, "");
+            translatedText = translatedText.replace(/See More/i, "");
+        }
+    
           console.log("After translation: " + translatedText);
-
-
           const intensity = vader.SentimentIntensityAnalyzer.polarity_scores(translatedText);
           console.log("Intensity of Translation: " + intensity.compound);
 
@@ -307,12 +306,15 @@ $(document).ready(function() {
           $("#white-box").text(translatedText);
           runEntityAnalysis(translatedText, "eng");
           runEmotionAnalysis(translatedText);
+
       }, 1000);
     }
 
     function clickButton(content) {
+      console.log('clickButton')
       // TODO: 
-      if(containsTranslationButton()){
+      if (containsTranslationButton() || autoTranslated.length > 0){
+        //alert('2')
         var translateButton = getTranslationButton();
         translateButton.onclick =  function() {
           setTimeout(function(){
@@ -326,7 +328,6 @@ $(document).ready(function() {
           }, 300);          
         };
       }
-
       $(".btn-class").on("click", function() {
         $("#translation-box").remove();
         analyzedFbId.add(fbId);
@@ -346,27 +347,35 @@ $(document).ready(function() {
       var origLink =  $('a._5pcq[href*="' + fbId +'"]')[0];
       parent = origLink.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;
       var links = $("._43f9._63qh", parent);
-      // alert('links: ' + JSON.stringify(links))
-      // if (links.length > 0) {
-      //   alert('11')
-      // }
       return links.length > 0;
     }
 
     function getTranslationButton(){
+      console.log('getTranslationButton')
       if(containsTranslationButton()){
         return $("._43f9._63qh a", parent)[0];
+      }
+      else if (autoTranslated.length > 0) {
+        return $("._h90", parent)[0];
+      }
+    }
+
+    function getSeeOriginalButton() {
+      if (autoTranslated.length > 0) {
+        return $("._h90")[0];
       }
     }
 
     function detectLanguage(content) {
+      console.log('detectLanguage')
       var isNative = false; //if language is native
       if (!(fbId in fbIds)) {
         console.log("FB ID: " + fbId);
-        if(containsTranslationButton()){
+        if(containsTranslationButton() || autoTranslated.length > 0){
+          //alert('3')
           console.log("Translation button exists!");
           // unable to determine what language it is without calling an API
-          // for now, we just know it's not English, so we create the hover box
+        onclick  // for now, we just know it's not English, so we create the hover box
           fbIds[fbId] = "n/a";
           clickButton(content);
         }
