@@ -5,9 +5,7 @@
     "description":"General Use",
     "background":{
         "scripts":[
-                "jquery-3.2.1.min.js",
-                "selectlang.js",
-                "http_requester.js"
+                "jquery-3.2.1.min.js"
             ],
         "persistent": false
     },

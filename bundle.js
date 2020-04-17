@@ -2,16 +2,9 @@
 //const spacyNLP = require("spacy-nlp");
 const vader = require('vader-sentiment');
 var node_ner = require('node-ner');
-
-var ner = new node_ner({
-  install_path : 'stanford-ner-2014-10-26/stanford-ner-2014-10-26'
-});
-
+var ner = new node_ner({install_path : 'stanford-ner-2014-10-26/stanford-ner-2014-10-26'});
 var nlp = require('compromise');
-
-
 var myName = 'karrie-test';
-
 var nativeLang; //array with native languages
 var fbId;
 var fbIds = {};
@@ -42,18 +35,6 @@ var uniqueEntities = [];
 var emotionLog;
 var sentimentLog;
 var postId;
-
-/* Generates random 5-character id.
- * For logging post identification.
- */
-function generateId() {
-  var id = "";
-  var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (var i = 0; i < 5; i++) {
-    id += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return id;
-}
 
 /* Return closest parent element of given class. */
 function getFbId(elt) {
@@ -264,12 +245,19 @@ $(document).ready(function() {
       // Clicks the translation button to read the post
       var containsTranslationButton_flag = containsTranslationButton()
       var autoTranlatedText_flag = autoTranslated.length > 0
-      if (containsTranslationButton_flag || autoTranlatedText_flag){
-          //translateButton.click();
+      if (containsTranslationButton_flag){
+          translateButton.click();
           addHoverBox();
           createButton();
           addTranslationBox();
       }
+
+      else if (autoTranlatedText_flag){
+          addHoverBox();
+          createButton();
+          addTranslationBox();
+      }
+
 
       // Waits 1 second because it takes a while to click the translation button
       setTimeout(function(){
@@ -280,10 +268,11 @@ $(document).ready(function() {
             var postParent = getPostDiv();
             var translationDiv = $("._5wpt ._50f4 div", postParent)[0];
             var translatedText = translationDiv.textContent;
-            translatedText = translatedText.replace(/ 　　 /g, "\n\n");
-            translatedText = translatedText.replace(/See Translation/i, "");
-            translatedText = translatedText.replace(/See More/i, "");
         }
+          translatedText = translatedText.replace(/\n/g, "\n\n");
+          translatedText = translatedText.replace(/[\s\t]{2,}/g, "\n\n");
+          translatedText = translatedText.replace(/See Translation/i, "");
+          translatedText = translatedText.replace(/See More/i, "");
     
           console.log("After translation: " + translatedText);
           const intensity = vader.SentimentIntensityAnalyzer.polarity_scores(translatedText);
@@ -311,14 +300,11 @@ $(document).ready(function() {
     }
 
     function clickButton(content) {
-      console.log('clickButton')
       // TODO: 
       if (containsTranslationButton() || autoTranslated.length > 0){
-        //alert('2')
         var translateButton = getTranslationButton();
         translateButton.onclick =  function() {
           setTimeout(function(){
-            console.log("Translation button clicked");
             $("#translation-box").remove();
             analyzedFbId.add(fbId);
             postId = fbId;
@@ -328,7 +314,8 @@ $(document).ready(function() {
           }, 300);          
         };
       }
-      $(".btn-class").on("click", function() {
+
+    $(".btn-class").on("click", function() {
         $("#translation-box").remove();
         analyzedFbId.add(fbId);
         postId = fbId;
@@ -351,7 +338,6 @@ $(document).ready(function() {
     }
 
     function getTranslationButton(){
-      console.log('getTranslationButton')
       if(containsTranslationButton()){
         return $("._43f9._63qh a", parent)[0];
       }
@@ -367,12 +353,10 @@ $(document).ready(function() {
     }
 
     function detectLanguage(content) {
-      console.log('detectLanguage')
       var isNative = false; //if language is native
       if (!(fbId in fbIds)) {
         console.log("FB ID: " + fbId);
         if(containsTranslationButton() || autoTranslated.length > 0){
-          //alert('3')
           console.log("Translation button exists!");
           // unable to determine what language it is without calling an API
         onclick  // for now, we just know it's not English, so we create the hover box
