@@ -118,12 +118,17 @@ $(document).ready(function() {
     var includeImage = 0; // 1 if mtm div has height and width
     var includeLink = 0;
     var includeShared = 0;
-
+    var autoTranslatedText;
     var autoTranslated = $(this).find(".userContent").find("._5wpt").find("p").text();
+    var autoTranslatedSet = $(this).find(".userContent").find("._5wpt").find("p");
     //If Facebook autotranslates the post, then retrieve hidden original content
     if(autoTranslated.length > 0){
       var main = $(this).find(".hidden_elem").find("p").text();
-    }else{
+      autoTranslatedText = autoTranslatedSet[0].innerText;
+      for (var i = 1; i < autoTranslatedSet.length; i++) {
+      autoTranslatedText += '\n\n' + autoTranslatedSet[i].innerText;
+      }
+    } else{
       var main = $(this).find(".userContent").find("p").text();
     };
 
@@ -197,7 +202,6 @@ $(document).ready(function() {
     }
 
     function addTranslationBox() {
-      console.log("Adding translation box");
       $("body").append("<div id='translation-box' style='background-color:#1A99DB; position:absolute; height:auto;'></div>");
       $("#translation-box").css("left", (position.left + width + 28) + "px");
       $("#translation-box").css("top", position.top + 25 + "px");
@@ -222,7 +226,6 @@ $(document).ready(function() {
      * entity analysis with English.
      */
     function translateText(content, language, linkSection) {
-      console.log('translateText')
       // remove hashtags, insert periods
       // remove every special character, add space after the !
 
@@ -262,14 +265,13 @@ $(document).ready(function() {
       // Waits 1 second because it takes a while to click the translation button
       setTimeout(function(){
           if (autoTranlatedText_flag) {
-            var translatedText = autoTranslated;
+            var translatedText = autoTranslatedText;
           }
           else {
             var postParent = getPostDiv();
             var translationDiv = $("._5wpt ._50f4 div", postParent)[0];
-            var translatedText = translationDiv.textContent;
+            var translatedText = translationDiv.innerText;
         }
-          translatedText = translatedText.replace(/\n/g, "\n\n");
           translatedText = translatedText.replace(/[\s\t]{2,}/g, "\n\n");
           translatedText = translatedText.replace(/See Translation/i, "");
           translatedText = translatedText.replace(/See More/i, "");
