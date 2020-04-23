@@ -394,10 +394,13 @@
         function runEntityAnalysis(content, langCode, linkSection) {
           // Discoveres entities through the Compromise NLP package
           const nlp = require('compromise');
-          var nerEntities = nlp(content).topics(); // NER
-          var acronymEntities = nlp(content).acronyms(); // acronyms
+          var doc = nlp(content)
+          var urlEntities = doc.urls().out('array'); // url
+          console.log('====', urlEntities)
+          var nerEntities = doc.topics(); // NER
+          var acronymEntities = doc.acronyms(); // acronyms
           var compromiseEntities = nerEntities.concat(acronymEntities).unique().out('offsets');
-          console.log('Entities found through compromise library:', compromiseEntities.map(x => x.text));
+          console.log('Entities found through compromise library:', compromiseEntities);
 
           if (!linkSection) {
             $("#translation-box").append("<div id='eToggleContainer'><div id='entityToggle'><h2 id='entity-label' style='color: white; margin-bottom: 4px;background-color: #3b5998; border-radius: 4px; text-align:center; padding:2px;'> Keyword Analysis </h2></div><div id='kQuestion' style='color:gray; display:inline-block'>?</div></div><div id=\'eInfo\'></div>");
@@ -454,9 +457,12 @@
 
           for (var i = 0; i < compromiseEntities.length; i++) {
             var entity = compromiseEntities[i].text.trim();
-            var highlighted = "<a href='#'><mark class='entity'" +
-              "style='background-color: #ffb3b3; opacity: .75;'>" + entity + "</mark></a>";
-            content = content.replace(entity, highlighted);
+            console.log('----', compromiseEntities[i].text)
+            if (entity.indexOf('//') == -1) {
+              var highlighted = "<a href='#'><mark class='entity'" +
+                "style='background-color: #ffb3b3; opacity: .75;'>" + entity + "</mark></a>";
+              content = content.replace(entity, highlighted);
+            }
           }
 
           $("#white-box2").empty();
@@ -510,6 +516,10 @@
                   analysis += "<span style='margin:auto'><span style='font-size:14px'><b>" + entity + "</b></span><br></span>";
                   analysis += '</span><br><input type="button" value="Google Search" class="googlebutton" onclick="window.open(\'' + googleLink + '\')" ';
                   analysis += 'style="font-size:14px; font-weight:bold; background-color:#e5e5e5; border-radius:2px; border:1px solid #e4e4e4; color:#666; padding:10px; cursor:pointer;" onMouseOver="this.style.color=\'#333\'; this.style.background=\'#f5f5f5\'" onMouseOut="this.style.background=\'#e4e4e4\'; this.style.color=\'#666\'" />';
+                }
+                if (wikiText.includes('may refer to:')) {
+                  var idx = wikiText.indexOf("may refer to:");
+                  wikiText = wikiText.substring(0, idx) + "may refer to various concepts. You can examine them in the above Wikipedia link."
                 }
 
                 // detect first image title from wikipedia
